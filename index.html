@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Gil & Or — Morning & Evening App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --morning-bg: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      --evening-bg: linear-gradient(135deg, #2b1055 0%, #7597de 100%);
+      --morning-accent: #ff9a56;
+      --evening-accent: #7c5cbf;
+      --card-bg: rgba(255,255,255,0.95);
+      --shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: 'Fredoka', sans-serif;
+      min-height: 100vh;
+      transition: background 0.5s;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      overflow-x: hidden;
+    }
+
+    body.morning { background: var(--morning-bg); }
+    body.evening { background: var(--evening-bg); }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ===== WELCOME SCREEN ===== */
+    .screen { width: 100%; animation: fadeIn 0.5s ease; }
+    .hidden { display: none !important; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes confetti {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-200px) rotate(720deg); opacity: 0; }
+    }
+
+    @keyframes starPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+    }
+
+    .app-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .app-subtitle {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .choice-label {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    }
+
+    .choice-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .choice-btn {
+      width: 140px;
+      padding: 25px 20px;
+      border-radius: 24px;
+      border: 3px solid rgba(255,255,255,0.5);
+      background: var(--card-bg);
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .choice-btn:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+    .choice-btn:active { transform: scale(0.95); }
+
+    .choice-btn.selected {
+      border-color: #ff6b6b;
+      background: #fff5f5;
+      transform: translateY(-5px);
+    }
+
+    .choice-emoji { font-size: 3rem; margin-bottom: 10px; }
+    .choice-text { font-size: 1.1rem; font-weight: 600; color: #333; }
+
+    .start-btn {
+      width: 100%;
+      max-width: 300px;
+      padding: 18px;
+      border: none;
+      border-radius: 50px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    }
+
+    .start-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+    .start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ===== TASKS SCREEN ===== */
+    .tasks-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .tasks-greeting {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      margin-bottom: 5px;
+    }
+
+    .tasks-time-label {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .tasks-progress {
+      background: rgba(255,255,255,0.3);
+      border-radius: 20px;
+      height: 12px;
+      margin-bottom: 25px;
+      overflow: hidden;
+    }
+
+    .tasks-progress-fill {
+      height: 100%;
+      border-radius: 20px;
+      transition: width 0.5s ease;
+      background: linear-gradient(90deg, #ffd700, #ff6b6b);
+    }
+
+    .task-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+
+    .task-btn {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      width: 100%;
+      padding: 18px 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 18px;
+      background: var(--card-bg);
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: var(--shadow);
+      text-align: left;
+    }
+
+    .task-btn:hover { transform: translateX(5px); }
+    .task-btn:active { transform: scale(0.97); }
+
+    .task-btn.done {
+      background: #e8f5e9;
+      border-color: #4caf50;
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .task-btn.done .task-check { background: #4caf50; color: #fff; }
+
+    .task-check {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #eee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    .task-emoji { font-size: 1.4rem; flex-shrink: 0; }
+    .task-text { flex: 1; }
+
+    .tasks-back {
+      margin-top: 25px;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.5);
+      color: #fff;
+      padding: 10px 25px;
+      border-radius: 50px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tasks-back:hover { background: rgba(255,255,255,0.15); }
+
+    /* ===== REWARD SCREEN ===== */
+    .reward-screen { text-align: center; }
+
+    .reward-stars {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+
+    .reward-stars span {
+      display: inline-block;
+      animation: starPulse 1s ease-in-out infinite;
+    }
+    .reward-stars span:nth-child(2) { animation-delay: 0.2s; }
+    .reward-stars span:nth-child(3) { animation-delay: 0.4s; }
+
+    .reward-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 15px rgba(0,0,0,0.3);
+      margin-bottom: 5px;
+    }
+
+    .reward-subtitle {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 25px;
+    }
+
+    .reward-card {
+      background: var(--card-bg);
+      border-radius: 28px;
+      padding: 35px 25px;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+      animation: popIn 0.6s ease;
+    }
+
+    .reward-char-img-wrap {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 15px;
+      border-radius: 50%;
+      padding: 4px;
+      background: linear-gradient(135deg, #ffd700, #ff6b6b, #7c5cbf);
+    }
+
+    .reward-char-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: top;
+      background: #222;
+    }
+
+    .reward-char-fallback {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      background: #222;
+    }
+
+    .reward-universe {
+      display: inline-block;
+      padding: 4px 14px;
+      background: #f0ebff;
+      color: #7c5cbf;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .reward-char-name {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .reward-message {
+      font-size: 1.1rem;
+      color: #555;
+      line-height: 1.6;
+      font-style: italic;
+      padding: 15px;
+      background: #f9f7ff;
+      border-radius: 16px;
+      border-left: 4px solid #ffd700;
+    }
+
+    .reward-again-btn {
+      margin-top: 30px;
+      padding: 14px 40px;
+      border: none;
+      border-radius: 50px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: linear-gradient(135deg, #7c5cbf, #667eea);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .reward-again-btn:hover { transform: translateY(-3px); }
+
+    /* Confetti */
+    .confetti-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      top: 100%;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      0% { top: 100%; opacity: 1; }
+      10% { top: 80%; }
+      100% { top: -10%; opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- WELCOME SCREEN -->
+    <div id="welcome-screen" class="screen">
+      <div class="app-title">🌟 Gil & Or 🌟</div>
+      <div class="app-subtitle">Morning & Evening App</div>
+
+      <div class="choice-label">Who are you?</div>
+      <div class="choice-row">
+        <button class="choice-btn" onclick="selectPerson('Gil')" id="btn-gil">
+          <div class="choice-emoji">👦</div>
+          <div class="choice-text">Gil</div>
+        </button>
+        <button class="choice-btn" onclick="selectPerson('Or')" id="btn-or">
+          <div class="choice-emoji">👧</div>
+          <div class="choice-text">Or</div>
+        </button>
+      </div>
+
+      <div class="choice-label">What time is it?</div>
+      <div class="choice-row">
+        <button class="choice-btn" onclick="selectTime('morning')" id="btn-morning">
+          <div class="choice-emoji">☀️</div>
+          <div class="choice-text">Morning</div>
+        </button>
+        <button class="choice-btn" onclick="selectTime('evening')" id="btn-evening">
+          <div class="choice-emoji">🌙</div>
+          <div class="choice-text">Evening</div>
+        </button>
+      </div>
+
+      <button class="start-btn" id="start-btn" onclick="startTasks()" disabled>Let's Go! 🚀</button>
+    </div>
+
+    <!-- TASKS SCREEN -->
+    <div id="tasks-screen" class="screen hidden">
+      <div class="tasks-header">
+        <div class="tasks-greeting" id="tasks-greeting"></div>
+        <div class="tasks-time-label" id="tasks-time-label"></div>
+      </div>
+      <div class="tasks-progress">
+        <div class="tasks-progress-fill" id="tasks-progress-fill" style="width:0%"></div>
+      </div>
+      <div class="task-list" id="task-list"></div>
+      <button class="tasks-back" onclick="goHome()">← Back</button>
+    </div>
+
+    <!-- REWARD SCREEN -->
+    <div id="reward-screen" class="screen reward-screen hidden">
+      <div class="reward-stars"><span>⭐</span><span>🌟</span><span>⭐</span></div>
+      <div class="reward-title" id="reward-title">Amazing Job!</div>
+      <div class="reward-subtitle" id="reward-subtitle"></div>
+      <div class="reward-card">
+        <div class="reward-char-img-wrap">
+          <img id="reward-img" class="reward-char-img" src="" alt=""
+               onerror="this.style.display='none'; document.getElementById('reward-fallback').style.display='flex';">
+          <div id="reward-fallback" class="reward-char-fallback" style="display:none;"></div>
+        </div>
+        <div id="reward-universe" class="reward-universe"></div>
+        <div id="reward-char-name" class="reward-char-name"></div>
+        <div id="reward-message" class="reward-message"></div>
+      </div>
+      <button class="reward-again-btn" onclick="goHome()">Do It Again! 🔄</button>
+    </div>
+
+  </div>
+
+  <div class="confetti-container" id="confetti-container"></div>
+
+  <script>
+    // ===== TASKS =====
+    const morningTasks = [
+      { emoji: '😴', text: 'Wake Up' },
+      { emoji: '🚽', text: 'Pee' },
+      { emoji: '🥣', text: 'Eat Breakfast' },
+      { emoji: '🤫', text: 'Quiet Play Time' },
+      { emoji: '👕', text: 'Get Dressed' },
+      { emoji: '🪥', text: 'Brush Your Teeth' },
+      { emoji: '🧴', text: 'Water Bottle & Packed Meal' },
+      { emoji: '👟', text: 'Shoes On!' }
+    ];
+
+    const eveningTasks = [
+      { emoji: '🍽️', text: 'Eat Dinner' },
+      { emoji: '🚿', text: 'Shower' },
+      { emoji: '🩳', text: 'Wear Pyjamas' },
+      { emoji: '💧', text: 'Fill Cold Water Bottle' },
+      { emoji: '📖', text: 'Read Bedtime Stories' },
+      { emoji: '🏴‍☠️', text: 'Read Treasure Island' },
+      { emoji: '💍', text: 'Read Lord of the Rings' }
+    ];
+
+    // ===== CHARACTERS WITH PERSONALIZED MESSAGES =====
+    const rewardCharacters = [
+      // HEROES
+      { name: 'Gandalf', universe: 'Lord of the Rings', image: 'images/gandalf.jpeg', icon: '🧙',
+        messages: { morning: "A wizard is never late — and neither are you! Off you go, young hobbit!", evening: "Rest now. Even the greatest adventurers need sleep to face tomorrow's journey." }},
+      { name: 'Frodo', universe: 'Lord of the Rings', image: 'images/frodo.png', icon: '🧝',
+        messages: { morning: "Even the smallest person can have the best morning routine. You proved it!", evening: "The hardest part of the day is done. Time for a well-earned rest, friend." }},
+      { name: 'Aragorn', universe: 'Lord of the Rings', image: 'images/aragorn.jpg', icon: '⚔️',
+        messages: { morning: "You have shown the strength of a true king this morning. Now go conquer the day!", evening: "A warrior rests before the next battle. You've earned it. Sleep well." }},
+      { name: 'Samwise', universe: 'Lord of the Rings', image: 'images/sam.jpeg', icon: '🌱',
+        messages: { morning: "There's nothing like a good breakfast and a fresh start! You did great!", evening: "Well, that's everything done, and done proper. Time for sleep, I reckon!" }},
+      { name: 'Legolas', universe: 'Lord of the Rings', image: 'images/legolas.jpeg', icon: '🏹',
+        messages: { morning: "Your precision this morning would make even an Elf proud. Well done!", evening: "The stars are coming out. You've done well today. Rest under their light." }},
+      { name: 'Harry Potter', universe: 'Harry Potter', image: 'images/harry.jpeg', icon: '⚡',
+        messages: { morning: "Brilliant! Even I wasn't this organised at Hogwarts. You're a star!", evening: "Mischief managed! Everything's done. Now off to sleep — no sneaking around!" }},
+      { name: 'Hermione', universe: 'Harry Potter', image: 'images/hermione.jpeg', icon: '📚',
+        messages: { morning: "Full marks! You completed every single task. I'm genuinely impressed!", evening: "Excellent work! Bedtime reading AND routine done? You're top of the class!" }},
+      { name: 'Ron Weasley', universe: 'Harry Potter', image: 'images/ron.jpeg', icon: '♟️',
+        messages: { morning: "Blimey! You finished everything? Even I struggle with that. Legend!", evening: "All done? Wicked! Now get some sleep before Mum starts shouting." }},
+      { name: 'Dumbledore', universe: 'Harry Potter', image: 'images/dumbledore.jpeg', icon: '✨',
+        messages: { morning: "It is our choices that show what we truly are. You chose brilliantly today!", evening: "Happiness can be found even in the darkest times — like finishing your bedtime routine!" }},
+      { name: 'Luna Lovegood', universe: 'Harry Potter', image: 'images/luna.jpeg', icon: '🌙',
+        messages: { morning: "You're quite extraordinary, you know? Most people can't even find their shoes!", evening: "The Nargles won't bother you tonight. You've done everything perfectly." }},
+      { name: 'Tony Stark', universe: 'Marvel', image: 'images/tony.jpeg', icon: '🔴',
+        messages: { morning: "Not bad, kid. I mean, I'd have done it in half the time, but still — impressive.", evening: "JARVIS, log it: all tasks complete. This kid's going places. Night night." }},
+      { name: 'Steve Rogers', universe: 'Marvel', image: 'images/steve.jpeg', icon: '🛡️',
+        messages: { morning: "I could do this all day — but you already finished! That's real discipline.", evening: "You did the right thing, every single step. A true hero's evening. Rest up, soldier." }},
+      { name: 'Thor', universe: 'Marvel', image: 'images/thor.jpeg', icon: '⚡',
+        messages: { morning: "By Odin's beard! You are WORTHY of a fantastic day! Go forth, champion!", evening: "Another glorious evening conquered! Even Asgardians need their beauty sleep." }},
+      { name: 'Spider-Man', universe: 'Marvel', image: 'images/spiderman.jpeg', icon: '🕷️',
+        messages: { morning: "With great morning routines come great days! You nailed it!", evening: "All done! Now get some rest — being awesome takes a lot of energy, trust me." }},
+      { name: 'Hulk', universe: 'Marvel', image: 'images/hulk.webp', icon: '💚',
+        messages: { morning: "HULK IMPRESSED! You smash morning routine! Hulk proud of you!", evening: "Hulk say... good job. Now sleep. Even Hulk sleeps sometimes." }},
+      { name: 'Goku', universe: 'Dragon Ball', image: 'images/goku.avif', icon: '💥',
+        messages: { morning: "Awesome! You powered up like a Super Saiyan this morning! Let's gooo!", evening: "All tasks done? That's the spirit! Now rest up so you can train tomorrow!" }},
+      { name: 'Vegeta', universe: 'Dragon Ball', image: 'images/vegeta.jpeg', icon: '👊',
+        messages: { morning: "Hmph. Acceptable. You've shown discipline worthy of a Saiyan prince.", evening: "You completed everything? ...Fine. I'll admit it. That was impressive." }},
+      { name: 'Piccolo', universe: 'Dragon Ball', image: 'images/piccolo.jpeg', icon: '🧘',
+        messages: { morning: "Good. Discipline builds strength. You've trained well this morning.", evening: "All tasks done. Now meditate on today's victories and rest." }},
+      { name: 'Gohan', universe: 'Dragon Ball', image: 'images/gohan.jpeg', icon: '📖',
+        messages: { morning: "You did it! Even my mum would be impressed, and she's really strict!", evening: "Reading AND routine done? You're like a Super Saiyan scholar!" }},
+      { name: 'Luke Skywalker', universe: 'Star Wars', image: 'images/luke.jpeg', icon: '✨',
+        messages: { morning: "The Force is strong with you this morning! I can feel it!", evening: "You've done well, young one. Now rest — tomorrow's adventure awaits." }},
+      { name: 'Leia Organa', universe: 'Star Wars', image: 'images/leia.jpeg', icon: '👑',
+        messages: { morning: "Now THAT'S how a leader starts their day. I'm proud of you!", evening: "Hope is strongest in those who take care of themselves. Goodnight, hero." }},
+      { name: 'Yoda', universe: 'Star Wars', image: 'images/yoda.jpeg', icon: '🌟',
+        messages: { morning: "Completed all tasks, you have. Proud of you, I am. Hmmmm!", evening: "Rest now, you must. Done well today, you have. Yes, hmmm." }},
+      { name: 'Han Solo', universe: 'Star Wars', image: 'images/han.jpeg', icon: '🚀',
+        messages: { morning: "Great, kid! Don't get cocky... actually, you earned it. Nice work!", evening: "Everything's done? I know. Never tell me the odds — you always come through." }},
+      { name: 'Obi-Wan', universe: 'Star Wars', image: 'images/obiwan.jpeg', icon: '⚔️',
+        messages: { morning: "You are strong and wise, and I am very proud of you.", evening: "May the Force be with you as you sleep. You've earned a peaceful night." }},
+      // VILLAINS
+      { name: 'Thanos', universe: 'Marvel', image: 'images/thanos.webp', icon: '🟣',
+        messages: { morning: "Your discipline is... inevitable. Even I respect that. Well done.", evening: "Perfectly balanced routine, as all things should be. Now rest." }},
+      { name: 'Loki', universe: 'Marvel', image: 'images/loki.jpeg', icon: '🗡️',
+        messages: { morning: "I must say, I'm impressed. You completed everything without any... mischief?", evening: "All tasks done? You're burdened with glorious accomplishment! Sweet dreams." }},
+      { name: 'Darth Vader', universe: 'Star Wars', image: 'images/vader.jpg', icon: '⚫',
+        messages: { morning: "Impressive. Most impressive. You have proven yourself well this morning.", evening: "The dark side of... bedtime is a pathway to great sleep. You've done well." }},
+      { name: 'Palpatine', universe: 'Star Wars', image: 'images/palpatine.jpeg', icon: '⚡',
+        messages: { morning: "Gooood... everything is proceeding as I have foreseen. Excellent morning!", evening: "Unlimited sleep! You've earned it. Every task done. The power is yours." }},
+      { name: 'Voldemort', universe: 'Harry Potter', image: 'images/voldemort.webp', icon: '🐍',
+        messages: { morning: "Even I must admit... your dedication is remarkable. Don't let it go to your head.", evening: "All tasks complete? Perhaps you possess a power even I underestimated." }},
+      { name: 'Sauron', universe: 'Lord of the Rings', image: 'images/sauron.jpg', icon: '👁️',
+        messages: { morning: "My Eye sees all — and what I see is a PERFECT morning routine!", evening: "Even the Dark Lord approves. You have completed all tasks. Rest now." }},
+      { name: 'Frieza', universe: 'Dragon Ball', image: 'images/frieza.webp', icon: '👑',
+        messages: { morning: "Well well well. You've impressed an Emperor. That doesn't happen often.", evening: "Every task done? Your power level is... acceptable. For a mortal. Sleep now." }},
+      { name: 'Gollum', universe: 'Lord of the Rings', image: 'images/gollum.jpg', icon: '💍',
+        messages: { morning: "We finishes all the taskses, precious! Yes we did! Gollum, gollum!", evening: "Sleepses now, precious. We did all the taskses. Good, good, gollum!" }},
+      { name: 'Saruman', universe: 'Lord of the Rings', image: 'images/saruman.jpeg', icon: '🧙‍♂️',
+        messages: { morning: "Your efficiency rivals my own. A promising start to the day.", evening: "All tasks complete? Your discipline would serve Isengard well. Rest now." }},
+      { name: 'Bellatrix', universe: 'Harry Potter', image: 'images/bellatrix.jpg', icon: '⚡',
+        messages: { morning: "Oooh, look at you! All tasks done! Even I'm a teensy bit impressed!", evening: "Everything finished? You're almost as devoted as ME! Almost. Sweet dreams!" }},
+      { name: 'Ultron', universe: 'Marvel', image: 'images/ultron.webp', icon: '🤖',
+        messages: { morning: "Task completion rate: 100%. You are... surprisingly efficient for a human.", evening: "All systems — I mean tasks — completed. Initiating sleep mode. Well done." }},
+      { name: 'Darth Maul', universe: 'Star Wars', image: 'images/maul.webp', icon: '😈',
+        messages: { morning: "At last... a worthy morning routine! Your determination is fierce!", evening: "Every task conquered. You fight through bedtime like a true warrior." }},
+    ];
+
+    // ===== STATE =====
+    let selectedPerson = null;
+    let selectedTime = null;
+    let completedTasks = new Set();
+
+    // ===== FUNCTIONS =====
+    function selectPerson(person) {
+      selectedPerson = person;
+      document.getElementById('btn-gil').classList.toggle('selected', person === 'Gil');
+      document.getElementById('btn-or').classList.toggle('selected', person === 'Or');
+      checkReady();
+    }
+
+    function selectTime(time) {
+      selectedTime = time;
+      document.getElementById('btn-morning').classList.toggle('selected', time === 'morning');
+      document.getElementById('btn-evening').classList.toggle('selected', time === 'evening');
+      document.body.className = time;
+      checkReady();
+    }
+
+    function checkReady() {
+      document.getElementById('start-btn').disabled = !(selectedPerson && selectedTime);
+    }
+
+    function startTasks() {
+      if (!selectedPerson || !selectedTime) return;
+      completedTasks = new Set();
+
+      const tasks = selectedTime === 'morning' ? morningTasks : eveningTasks;
+      const timeEmoji = selectedTime === 'morning' ? '☀️' : '🌙';
+      const timeLabel = selectedTime === 'morning' ? 'Morning Routine' : 'Evening Routine';
+
+      document.getElementById('tasks-greeting').textContent = `${timeEmoji} Hey ${selectedPerson}!`;
+      document.getElementById('tasks-time-label').textContent = timeLabel;
+
+      const list = document.getElementById('task-list');
+      list.innerHTML = '';
+      tasks.forEach((task, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'task-btn';
+        btn.id = `task-${i}`;
+        btn.innerHTML = `
+          <div class="task-check" id="check-${i}">○</div>
+          <div class="task-emoji">${task.emoji}</div>
+          <div class="task-text">${task.text}</div>
+        `;
+        btn.onclick = () => toggleTask(i, tasks.length);
+        list.appendChild(btn);
+      });
+
+      updateProgress(tasks.length);
+      showScreen('tasks-screen');
+    }
+
+    function toggleTask(index, total) {
+      if (completedTasks.has(index)) {
+        completedTasks.delete(index);
+        document.getElementById(`task-${index}`).classList.remove('done');
+        document.getElementById(`check-${index}`).textContent = '○';
+      } else {
+        completedTasks.add(index);
+        document.getElementById(`task-${index}`).classList.add('done');
+        document.getElementById(`check-${index}`).textContent = '✓';
+      }
+
+      updateProgress(total);
+
+      if (completedTasks.size === total) {
+        setTimeout(() => showReward(), 600);
+      }
+    }
+
+    function updateProgress(total) {
+      const pct = (completedTasks.size / total) * 100;
+      document.getElementById('tasks-progress-fill').style.width = `${pct}%`;
+    }
+
+    function showReward() {
+      const char = rewardCharacters[Math.floor(Math.random() * rewardCharacters.length)];
+      const msg = char.messages[selectedTime];
+
+      document.getElementById('reward-title').textContent = `Amazing Job, ${selectedPerson}!`;
+      document.getElementById('reward-subtitle').textContent = selectedTime === 'morning' 
+        ? "You're ready for an awesome day! 🎉" 
+        : "You're all set for a great sleep! 🎉";
+
+      const img = document.getElementById('reward-img');
+      const fallback = document.getElementById('reward-fallback');
+      img.style.display = 'block';
+      fallback.style.display = 'none';
+      img.src = char.image;
+      img.alt = char.name;
+      fallback.textContent = char.icon;
+
+      document.getElementById('reward-universe').textContent = char.universe;
+      document.getElementById('reward-char-name').textContent = char.name;
+      document.getElementById('reward-message').textContent = `"${msg}"`;
+
+      showScreen('reward-screen');
+      launchConfetti();
+    }
+
+    function goHome() {
+      document.body.className = '';
+      selectedPerson = null;
+      selectedTime = null;
+      document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('start-btn').disabled = true;
+      showScreen('welcome-screen');
+    }
+
+    function showScreen(id) {
+      ['welcome-screen', 'tasks-screen', 'reward-screen'].forEach(s => {
+        document.getElementById(s).classList.toggle('hidden', s !== id);
+      });
+    }
+
+    function launchConfetti() {
+      const container = document.getElementById('confetti-container');
+      container.innerHTML = '';
+      const colors = ['#ffd700', '#ff6b6b', '#7c5cbf', '#4caf50', '#ff9a56', '#667eea', '#ee5a24'];
+      for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+        piece.style.animationDelay = Math.random() * 0.5 + 's';
+        piece.style.width = (8 + Math.random() * 8) + 'px';
+        piece.style.height = (8 + Math.random() * 8) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '3px';
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+        container.appendChild(piece);
+      }
+      setTimeout(() => container.innerHTML = '', 4000);
+    }
+  </script>
+</body>
+</html>
